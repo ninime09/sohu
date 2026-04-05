@@ -720,6 +720,37 @@ body::after{
   box-shadow:0 0 36px var(--gold-glow);
   transform:translateX(4px);
 }
+.closing-links{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:.8rem;
+  margin-bottom:2.5rem;
+}
+@media(max-width:700px){.closing-links{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:420px){.closing-links{grid-template-columns:1fr}}
+.closing-link-card{
+  display:flex;flex-direction:column;gap:.45rem;
+  padding:1.1rem 1.2rem;
+  border:1px solid var(--subtler);
+  background:var(--bg-card);
+  transition:border-color .3s,background .3s,transform .3s var(--ease);
+  text-decoration:none;
+}
+.closing-link-card:hover{
+  border-color:rgba(232,184,109,.4);
+  background:var(--bg-card-2);
+  transform:translateY(-3px);
+}
+.closing-link-card__icon{font-size:1.4rem;line-height:1}
+.closing-link-card__name{
+  font-family:var(--font-serif);font-size:.95rem;font-weight:700;
+  color:var(--white);
+}
+.closing-link-card__url{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.06em;
+  color:var(--muted);
+}
+.closing-link-card:hover .closing-link-card__name{color:var(--gold)}
 .closing-footer{
   border-top:1px solid var(--subtler);padding-top:1.5rem;
 }
@@ -1185,9 +1216,28 @@ body::after{
       <span class="tw-cursor" id="closing-cursor"></span>
     </blockquote>
     <div class="closing-cta reveal">
-      <p class="closing-question">你现在对搜狐有了新的认识了吗？</p>
-      <a href="https://www.sohu.com" target="_blank" rel="noopener" class="closing-btn">
-        访问搜狐官网 →
+      <p class="closing-question">你现在对搜狐有了新的认识了吗？去它的各个产品逛逛。</p>
+    </div>
+    <div class="closing-links reveal">
+      <a href="https://news.sohu.com" target="_blank" rel="noopener" class="closing-link-card">
+        <span class="closing-link-card__icon">📰</span>
+        <span class="closing-link-card__name">搜狐新闻</span>
+        <span class="closing-link-card__url">news.sohu.com</span>
+      </a>
+      <a href="https://tv.sohu.com" target="_blank" rel="noopener" class="closing-link-card">
+        <span class="closing-link-card__icon">🎬</span>
+        <span class="closing-link-card__name">搜狐视频</span>
+        <span class="closing-link-card__url">tv.sohu.com</span>
+      </a>
+      <a href="https://www.changyou.com" target="_blank" rel="noopener" class="closing-link-card">
+        <span class="closing-link-card__icon">🎮</span>
+        <span class="closing-link-card__name">搜狐畅游</span>
+        <span class="closing-link-card__url">changyou.com</span>
+      </a>
+      <a href="https://club.sohu.com" target="_blank" rel="noopener" class="closing-link-card">
+        <span class="closing-link-card__icon">💬</span>
+        <span class="closing-link-card__name">搜狐社区</span>
+        <span class="closing-link-card__url">club.sohu.com</span>
       </a>
     </div>
     <footer class="closing-footer reveal">
