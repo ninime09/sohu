@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>你了解搜狐吗？— 搜狐认知纠偏馆</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+/* ══════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════ */
+:root {
+  --bg:           #080810;
+  --bg-2:         #0f0f1a;
+  --bg-card:      #13131f;
+  --bg-card-2:    #191926;
+  --gold:         #e8b86d;
+  --gold-dim:     #9a7535;
+  --gold-glow:    rgba(232,184,109,.18);
+  --gold-faint:   rgba(232,184,109,.06);
+  --blue:         #5dd5fc;
+  --blue-dim:     rgba(93,213,252,.22);
+  --blue-faint:   rgba(93,213,252,.06);
+  --red:          #ff4b4b;
+  --white:        #f2eee8;
+  --muted:        #6a6460;
+  --subtler:      #2e2c32;
+  --font-serif:   'Noto Serif SC','STSong','Georgia',serif;
+  --font-sans:    'Noto Sans SC','PingFang SC','Helvetica Neue',sans-serif;
+  --font-mono:    'Courier New','Consolas',monospace;
+  --ease:         cubic-bezier(.16,1,.3,1);
+  --ease-in:      cubic-bezier(.55,0,.45,1);
+}
+
+/* ══════════════════════════════════════════
+   RESET + BASE
+══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:var(--font-sans);
+  overflow:hidden;
+  height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit}
+a{color:inherit;text-decoration:none}
+
+/* Grain */
+body::after{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px;
+}
+
+/* ══════════════════════════════════════════
+   SLIDE SYSTEM
+══════════════════════════════════════════ */
+.slide{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(1rem,4vw,3rem);
+  overflow-y:auto;overflow-x:hidden;
+  transition:opacity .72s var(--ease), transform .72s var(--ease);
+  background:var(--bg);
+  z-index:1;
+}
+.slide.is-past{opacity:0;transform:translateY(-3%);pointer-events:none;z-index:2}
+.slide.is-active{opacity:1;transform:translateY(0);pointer-events:all;z-index:10}
+.slide.is-future{opacity:0;transform:translateY(3%);pointer-events:none;z-index:1}
+
+/* ══════════════════════════════════════════
+   GLOBAL NAV UI
+══════════════════════════════════════════ */
+/* Museum tag — top left */
+.museum-tag{
+  position:fixed;top:2rem;left:clamp(1rem,4vw,3rem);z-index:200;
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.25em;
+  color:var(--gold-dim);
+  transition:opacity .4s ease;
+}
+/* Counter — top right */
+.slide-counter{
+  position:fixed;top:2rem;right:clamp(1rem,4vw,3rem);z-index:200;
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.15em;color:var(--muted);
+  display:flex;align-items:center;gap:.35rem;
+}
+.slide-counter__current{color:var(--gold);font-size:.9rem}
+
+/* Side dots */
+.side-dots{
+  position:fixed;right:clamp(.8rem,2.5vw,1.8rem);top:50%;transform:translateY(-50%);
+  z-index:200;display:flex;flex-direction:column;gap:.7rem;
+}
+.side-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--subtler);
+  transition:background .3s,transform .3s,height .3s;
+  cursor:pointer;border:none;padding:0;
+}
+.side-dot.active{background:var(--gold);transform:scale(1.6)}
+
+/* Bottom nav arrows */
+.nav-arrows{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);
+  z-index:200;display:flex;align-items:center;gap:1.6rem;
+}
+.nav-arrow{
+  width:40px;height:40px;border:1px solid var(--subtler);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:1rem;
+  transition:border-color .3s,color .3s,transform .3s var(--ease);
+}
+.nav-arrow:hover{border-color:var(--gold-dim);color:var(--gold);transform:scale(1.12)}
+.nav-arrow:disabled{opacity:.2;pointer-events:none}
+.nav-hint{
+  font-family:var(--font-mono);font-size:.55rem;letter-spacing:.18em;
+  color:var(--subtler);white-space:nowrap;
+}
+
+/* ══════════════════════════════════════════
+   SLIDE 1: HERO
+══════════════════════════════════════════ */
+.slide--hero{overflow:hidden}
+/* Aurora layers */
+.hero-aurora{
+  position:absolute;inset:-60%;
+  background:
+    radial-gradient(ellipse 45% 55% at 25% 45%, rgba(232,184,109,.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 75% 60%, rgba(93,213,252,.05) 0%, transparent 70%);
+  animation:aurora 12s ease-in-out infinite alternate;
+  filter:blur(50px);pointer-events:none;
+}
+.hero-aurora-2{
+  position:absolute;inset:-60%;
+  background:
+    radial-gradient(ellipse 30% 40% at 60% 30%, rgba(232,184,109,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 70%, rgba(93,213,252,.03) 0%, transparent 60%);
+  animation:aurora 18s ease-in-out infinite alternate-reverse;
+  filter:blur(60px);pointer-events:none;
+}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+.hero-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  gap:clamp(1rem,2.5vh,2rem);
+  max-width:820px;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.7rem;
+  border:1px solid rgba(232,184,109,.2);padding:.4rem 1.1rem;
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.22em;color:var(--gold-dim);
+  opacity:0;animation:fade-up .8s var(--ease) .4s forwards;
+}
+.hero-badge::before,.hero-badge::after{
+  content:'';width:18px;height:1px;background:var(--gold-dim);
+}
+.hero-title{
+  font-family:var(--font-serif);
+  font-size:clamp(2rem,6vw,5.5rem);
+  font-weight:700;letter-spacing:.04em;line-height:1.18;
+  min-height:1.3em;
+  white-space:nowrap;
+  background:linear-gradient(135deg, var(--white) 30%, rgba(232,184,109,.75) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.tw-cursor::after{
+  content:'|';
+  -webkit-text-fill-color:var(--gold);
+  animation:blink .85s step-end infinite;
+}
+.hero-sub{
+  font-size:clamp(.9rem,1.6vw,1.1rem);color:var(--muted);line-height:1.9;
+  opacity:0;animation:fade-up .8s var(--ease) 3s forwards;
+}
+.hero-sub em{
+  font-style:normal;font-family:var(--font-mono);
+  font-size:.78em;letter-spacing:.08em;
+  display:block;margin-top:.3rem;color:var(--subtler);
+}
+.hero-enter{
+  display:inline-flex;align-items:center;gap:.8rem;
+  padding:.85rem 2.4rem;
+  border:1px solid rgba(232,184,109,.3);
+  font-family:var(--font-serif);font-size:.98rem;letter-spacing:.06em;color:var(--gold);
+  position:relative;overflow:hidden;
+  transition:border-color .3s,box-shadow .3s,transform .35s var(--ease);
+  opacity:0;animation:fade-up .8s var(--ease) 3.4s forwards;
+}
+.hero-enter::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(232,184,109,.12),rgba(93,213,252,.06));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s var(--ease);
+}
+.hero-enter:hover::before{transform:scaleX(1)}
+.hero-enter:hover{
+  border-color:var(--gold);
+  box-shadow:0 0 40px var(--gold-glow),0 0 80px rgba(232,184,109,.06);
+  transform:translateY(-3px);
+}
+.hero-enter span{position:relative;z-index:1}
+.hero-enter-arrow{position:relative;z-index:1;animation:bounce .2s ease infinite alternate}
+
+/* ══════════════════════════════════════════
+   SLIDE 2: BIAS SELECTION
+══════════════════════════════════════════ */
+.slide--bias{background:linear-gradient(160deg, var(--bg) 0%, var(--bg-2) 100%)}
+.slide-inner{width:100%;max-width:1080px;margin:0 auto}
+.slide-label{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.25em;
+  color:var(--gold-dim);margin-bottom:1rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.slide-label::before{content:'';flex:0 0 24px;height:1px;background:var(--gold-dim)}
+.slide-title{
+  font-family:var(--font-serif);font-size:clamp(1.7rem,3.4vw,2.8rem);
+  font-weight:700;letter-spacing:.03em;line-height:1.25;margin-bottom:.7rem;
+  white-space:nowrap;
+}
+@media(max-width:600px){.slide-title{white-space:normal}}
+.slide-desc{font-size:.95rem;color:var(--muted);margin-bottom:2.5rem;max-width:520px}
+
+/* Bias cards */
+.bias-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;
+  margin-bottom:2rem;
+}
+@media(max-width:900px){.bias-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.bias-grid{grid-template-columns:1fr}}
+
+.bias-card{
+  background:var(--bg-card);
+  border:1px solid var(--subtler);
+  padding:2rem 1.5rem;
+  text-align:left;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:border-color .3s,box-shadow .3s;
+  /* 3D tilt via JS inline style */
+  transform-style:preserve-3d;
+  will-change:transform;
+}
+.bias-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(232,184,109,.08) 0%,transparent 60%);
+  opacity:0;transition:opacity .4s;pointer-events:none;
+}
+.bias-card:hover::before,.bias-card.selected::before{opacity:1}
+.bias-card:hover,.bias-card.selected{
+  border-color:rgba(232,184,109,.45);
+  box-shadow:0 8px 48px var(--gold-glow),inset 0 0 0 1px rgba(232,184,109,.1);
+}
+.bias-card.selected{
+  border-color:var(--gold);
+  box-shadow:0 0 64px var(--gold-glow),inset 0 0 0 1px rgba(232,184,109,.18);
+}
+/* Corner brackets */
+.bc{position:absolute;width:12px;height:12px;border-color:var(--subtler);border-style:solid;transition:all .3s var(--ease)}
+.bias-card:hover .bc,.bias-card.selected .bc{border-color:var(--gold);width:18px;height:18px}
+.bc-tl{top:6px;left:6px;border-width:1.5px 0 0 1.5px}
+.bc-tr{top:6px;right:6px;border-width:1.5px 1.5px 0 0}
+.bc-bl{bottom:6px;left:6px;border-width:0 0 1.5px 1.5px}
+.bc-br{bottom:6px;right:6px;border-width:0 1.5px 1.5px 0}
+
+.bias-card__num{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;
+  color:var(--gold-dim);margin-bottom:1.3rem;
+}
+.bias-card__icon{font-size:2.2rem;margin-bottom:.9rem;display:block;line-height:1}
+.bias-card__text{
+  font-family:var(--font-serif);font-size:1rem;font-weight:700;
+  line-height:1.4;
+}
+/* Confirm banner */
+.bias-confirm{
+  display:none;
+  border:1px solid rgba(232,184,109,.25);border-left:2px solid var(--gold);
+  background:rgba(232,184,109,.04);
+  padding:1.2rem 1.6rem;
+  animation:fade-up .5s var(--ease);
+}
+.bias-confirm.show{display:flex;align-items:flex-start;gap:1rem}
+.confirm-stamp{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;
+  color:var(--gold);border:1px solid var(--gold-dim);
+  padding:.2rem .5rem;flex-shrink:0;margin-top:.15rem;
+}
+.confirm-text{font-family:var(--font-serif);font-size:.95rem;margin-bottom:.2rem}
+.confirm-sub{font-size:.82rem;color:var(--muted)}
+
+/* ══════════════════════════════════════════
+   SLIDE 3: MUSEUM — INNER CAROUSEL
+══════════════════════════════════════════ */
+.slide--museum{
+  padding:0;
+  background:var(--bg);
+  overflow:hidden;
+}
+/* Grid background */
+.slide--museum::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(232,184,109,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(232,184,109,.035) 1px,transparent 1px);
+  background-size:64px 64px;
+}
+.museum-track-wrap{
+  width:100%;height:100%;overflow:hidden;position:relative;
+}
+.museum-track{
+  display:flex;height:100%;
+  transition:transform .65s var(--ease);
+  will-change:transform;
+}
+/* Each exhibit takes full viewport */
+.exhibit{
+  flex:0 0 100%;height:100%;
+  display:grid;grid-template-columns:45% 55%;
+  position:relative;
+}
+@media(max-width:700px){.exhibit{grid-template-columns:1fr;grid-template-rows:auto 1fr;}}
+
+/* Exhibit left: artifact */
+.exhibit-art{
+  display:flex;align-items:center;justify-content:center;
+  padding:2rem;
+  position:relative;
+  border-right:1px solid var(--subtler);
+}
+.artifact-frame{
+  width:min(320px,85%);aspect-ratio:4/3;
+  border:1px solid rgba(232,184,109,.18);
+  background:rgba(232,184,109,.025);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.artifact-frame::before{/* Hatch overlay */
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(
+    45deg,transparent,transparent 5px,
+    rgba(232,184,109,.02) 5px,rgba(232,184,109,.02) 6px
+  );
+}
+.artifact-svg{width:65%;height:65%;position:relative;z-index:1;opacity:.85;}
+/* Corner decorations */
+.frame-corner{position:absolute;width:22px;height:22px;border-color:rgba(232,184,109,.35);border-style:solid}
+.frame-corner.tl{top:8px;left:8px;border-width:1px 0 0 1px}
+.frame-corner.tr{top:8px;right:8px;border-width:1px 1px 0 0}
+.frame-corner.bl{bottom:8px;left:8px;border-width:0 0 1px 1px}
+.frame-corner.br{bottom:8px;right:8px;border-width:0 1px 1px 0}
+.artifact-label{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.18em;
+  color:rgba(232,184,109,.4);white-space:nowrap;
+}
+
+/* Exhibit right: info panels (front + back stacked) */
+.exhibit-info{
+  position:relative;overflow:hidden;
+  padding:clamp(2rem,5vh,4rem) clamp(1.5rem,4vw,3.5rem);
+  display:flex;flex-direction:column;justify-content:center;
+}
+/* Front panel */
+.exhibit-front,.exhibit-back{
+  position:absolute;inset:0;
+  padding:inherit;
+  display:flex;flex-direction:column;justify-content:center;
+  transition:transform .7s var(--ease),opacity .7s ease;
+}
+.exhibit-front{transform:translateY(0);opacity:1}
+.exhibit-back{transform:translateY(110%);opacity:0}
+.exhibit.is-revealed .exhibit-front{transform:translateY(-110%);opacity:0}
+.exhibit.is-revealed .exhibit-back{transform:translateY(0);opacity:1}
+
+.exhibit-num{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.22em;
+  color:var(--gold-dim);margin-bottom:1.4rem;
+  display:flex;align-items:center;gap:.6rem;
+}
+.exhibit-num::after{content:'';flex:1;height:1px;max-width:40px;background:var(--gold-dim)}
+.exhibit-title{
+  font-family:var(--font-serif);font-size:clamp(1.4rem,3vw,2.2rem);
+  font-weight:700;margin-bottom:.5rem;line-height:1.25;
+}
+.exhibit-year{
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.15em;
+  color:var(--gold-dim);margin-bottom:1rem;
+}
+.exhibit-desc{
+  font-size:.9rem;color:var(--muted);line-height:1.8;margin-bottom:1.8rem;
+  max-width:420px;
+}
+.btn-reveal{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.7rem 1.6rem;
+  border:1px solid var(--gold-dim);color:var(--gold);
+  font-family:var(--font-serif);font-size:.9rem;letter-spacing:.06em;
+  transition:background .3s,border-color .3s,box-shadow .3s,transform .3s var(--ease);
+  align-self:flex-start;
+  position:relative;overflow:hidden;
+}
+.btn-reveal::before{
+  content:'';position:absolute;inset:0;
+  background:var(--gold-glow);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .35s var(--ease);
+}
+.btn-reveal:hover::before{transform:scaleX(1)}
+.btn-reveal:hover{
+  border-color:var(--gold);
+  box-shadow:0 0 32px var(--gold-glow);
+  transform:translateX(4px);
+}
+.btn-reveal span{position:relative;z-index:1}
+
+/* Back truth panel */
+.exhibit-back .exhibit-num{color:rgba(93,213,252,.45)}
+.exhibit-back .exhibit-num::after{background:rgba(93,213,252,.3)}
+.exhibit-back .exhibit-title{
+  font-size:clamp(1.1rem,2.2vw,1.5rem);color:var(--blue);
+  font-family:var(--font-sans);font-weight:600;
+}
+.exhibit-back .exhibit-desc{
+  color:rgba(242,238,232,.7);font-family:var(--font-sans);
+}
+.truth-facts{
+  list-style:none;border-top:1px solid var(--blue-dim);padding-top:.9rem;
+  margin-bottom:1.5rem;
+}
+.truth-facts li{
+  font-family:var(--font-mono);font-size:.63rem;letter-spacing:.06em;
+  color:rgba(93,213,252,.55);
+  padding:.28rem 0;border-bottom:1px solid rgba(93,213,252,.05);
+}
+.truth-facts li::before{content:'◆ ';color:var(--blue);font-size:.5rem}
+.btn-back{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.15em;
+  color:rgba(93,213,252,.4);
+  align-self:flex-start;
+  transition:color .2s;padding:.3rem 0;
+}
+.btn-back:hover{color:var(--blue)}
+
+/* Museum bottom nav */
+.museum-nav{
+  position:absolute;bottom:2rem;left:0;right:0;
+  display:flex;align-items:center;justify-content:center;gap:1.4rem;
+  z-index:20;
+}
+.museum-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--subtler);
+  cursor:pointer;transition:background .3s,transform .3s;
+  border:none;padding:0;
+}
+.museum-dot.active{background:var(--gold);transform:scale(1.6)}
+.museum-arrow{
+  width:36px;height:36px;border:1px solid var(--subtler);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:.9rem;
+  transition:border-color .3s,color .3s;
+}
+.museum-arrow:hover{border-color:var(--gold-dim);color:var(--gold)}
+.museum-arrow:disabled{opacity:.2;pointer-events:none}
+.museum-exhibit-count{
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.15em;
+  color:var(--gold-dim);margin:0 .4rem;
+}
+/* "continue" button — appears after last exhibit */
+.museum-continue{
+  position:absolute;bottom:2rem;right:clamp(1rem,5vw,4rem);
+  display:none;align-items:center;gap:.6rem;
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:var(--gold);
+  animation:pulse-gold 2s ease-in-out infinite;
+  cursor:pointer;
+  z-index:20;
+}
+.museum-continue.show{display:flex}
+.museum-continue:hover{opacity:.7}
+
+/* ══════════════════════════════════════════
+   SLIDE 4: SCRATCH LAB
+══════════════════════════════════════════ */
+.slide--scratch{
+  background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(12,18,30,1) 0%, var(--bg) 100%);
+}
+.scratch-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(2rem,5vw,5rem);
+  align-items:center;
+  width:100%;max-width:1000px;
+}
+@media(max-width:700px){.scratch-layout{grid-template-columns:1fr}}
+
+.scratch-left .slide-label{margin-bottom:.8rem}
+.scratch-left .slide-title{font-size:clamp(1.6rem,3.5vw,2.6rem);margin-bottom:.8rem}
+.scratch-left .slide-desc{margin-bottom:0}
+
+/* Scratch canvas wrapper */
+.scratch-right{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.scratch-box{
+  position:relative;
+  width:min(440px,100%);aspect-ratio:16/10;
+  border-radius:3px;
+  box-shadow:0 0 60px rgba(232,184,109,.08),0 0 1px rgba(232,184,109,.2);
+  overflow:hidden;
+}
+/* Reveal layer (behind) */
+.scratch-reveal{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(135deg,#0b1828 0%,#0e1c35 40%,#10122a 100%);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+}
+.scratch-reveal-inner{padding:2rem}
+.scratch-reveal-pre{
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;
+  color:rgba(93,213,252,.4);margin-bottom:.9rem;
+}
+.scratch-reveal-word{
+  font-family:var(--font-serif);font-size:clamp(2.5rem,6vw,4rem);font-weight:700;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--blue) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:.8rem;
+  animation:shimmer 3s linear infinite;
+  background-size:200% 100%;
+}
+.scratch-reveal-line{
+  font-size:.9rem;color:rgba(242,238,232,.5);line-height:1.7;
+}
+/* Canvas on top */
+#scratch-canvas{
+  position:absolute;inset:0;z-index:2;
+  cursor:crosshair;touch-action:none;
+  transition:opacity 1s ease;
+}
+/* Progress ring (SVG) */
+.scratch-progress{position:relative;width:52px;height:52px}
+.scratch-progress svg{transform:rotate(-90deg);width:52px;height:52px}
+.scratch-ring-bg{fill:none;stroke:var(--subtler);stroke-width:3}
+.scratch-ring-fill{
+  fill:none;stroke:var(--gold);stroke-width:3;
+  stroke-linecap:round;
+  stroke-dasharray:138;stroke-dashoffset:138;
+  transition:stroke-dashoffset .3s ease;
+}
+.scratch-pct{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:.6rem;color:var(--gold-dim);
+}
+.scratch-hint{
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.15em;color:var(--subtler);
+  text-align:center;
+}
+.scratch-reset{
+  display:none;padding:.35rem .9rem;
+  border:1px solid var(--subtler);
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.12em;color:var(--muted);
+  transition:border-color .2s,color .2s;
+}
+.scratch-reset:hover{border-color:var(--gold-dim);color:var(--gold)}
+.scratch-reset.show{display:block}
+
+/* ══════════════════════════════════════════
+   SLIDE 5: TAG DECONSTRUCTION + DnD
+══════════════════════════════════════════ */
+.slide--tags{
+  background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+  align-items:flex-start;overflow-y:auto;
+}
+.tags-layout{
+  display:grid;grid-template-columns:55% 45%;
+  gap:clamp(2rem,4vw,4rem);
+  width:100%;max-width:1080px;
+  padding-top:5rem;padding-bottom:5rem;
+}
+@media(max-width:800px){.tags-layout{grid-template-columns:1fr}}
+
+/* Floating tag cloud */
+.tag-cloud{
+  position:relative;height:340px;
+}
+.tag-bubble{
+  position:absolute;
+  border:1px solid;border-radius:100px;
+  padding:.45em 1.2em;
+  cursor:pointer;
+  font-family:var(--font-sans);
+  white-space:nowrap;
+  transition:transform .35s var(--ease),box-shadow .3s,background .3s;
+  animation:float-tag var(--dur,4s) ease-in-out infinite alternate;
+  animation-delay:var(--delay,0s);
+}
+.tag-bubble:hover,.tag-bubble.active{background:rgba(255,255,255,.04)}
+.tag-bubble.active{box-shadow:0 0 28px currentColor;z-index:10;transform:scale(1.1)!important}
+.tag-bubble[data-tag="门户"]   {color:var(--gold);border-color:rgba(232,184,109,.35);--dur:4.2s;--delay:0s}
+.tag-bubble[data-tag="媒体"]   {color:var(--blue);border-color:rgba(93,213,252,.3);--dur:5s;--delay:.5s}
+.tag-bubble[data-tag="内容"]   {color:#9fe0b4;border-color:rgba(159,224,180,.3);--dur:3.8s;--delay:.3s}
+.tag-bubble[data-tag="品牌"]   {color:#f5c4a6;border-color:rgba(245,196,166,.3);--dur:4.5s;--delay:.8s}
+.tag-bubble[data-tag="游戏"]   {color:#c5a8e8;border-color:rgba(197,168,232,.3);--dur:4s;--delay:.2s}
+.tag-bubble[data-tag="时代记忆"]{color:#ffd166;border-color:rgba(255,209,102,.3);--dur:5.2s;--delay:.6s}
+
+/* Tag explain */
+.tag-explain{
+  display:none;
+  background:var(--bg-card);border:1px solid var(--subtler);
+  border-left:2px solid var(--blue);
+  padding:1.6rem;margin-top:1.4rem;
+  animation:fade-up .4s var(--ease);
+  position:relative;
+}
+.tag-explain.show{display:block}
+.tag-explain-name{
+  font-family:var(--font-serif);font-size:1.5rem;
+  margin-bottom:.9rem;
+}
+.tag-explain-why{
+  font-size:.88rem;color:rgba(159,224,180,.8);
+  margin-bottom:.5rem;line-height:1.75;
+}
+.tag-explain-but{font-size:.88rem;color:var(--muted);line-height:1.75}
+.tag-explain-close{
+  position:absolute;top:.8rem;right:.8rem;
+  color:var(--subtler);font-size:1rem;
+  transition:color .2s;padding:.2rem;
+}
+.tag-explain-close:hover{color:var(--white)}
+
+/* DnD section */
+.dnd-section{}
+.dnd-title{
+  font-family:var(--font-serif);font-size:1.25rem;margin-bottom:.4rem;
+}
+.dnd-desc{font-size:.85rem;color:var(--muted);margin-bottom:1.3rem}
+.dnd-source{
+  display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1.2rem;min-height:44px;
+}
+.dnd-chip{
+  padding:.32rem .9rem;border:1px solid var(--subtler);
+  border-radius:100px;font-size:.8rem;color:var(--muted);
+  cursor:grab;transition:all .2s;background:var(--bg-card);
+}
+.dnd-chip:hover{border-color:var(--gold-dim);color:var(--gold);background:rgba(232,184,109,.04)}
+.dnd-chip.dragging{opacity:.35}
+.dnd-chip.placed{opacity:.2;pointer-events:none}
+.dnd-chip-placed{
+  padding:.32rem .9rem;border:1px solid var(--blue-dim);
+  border-radius:100px;font-size:.8rem;color:var(--blue);
+  background:var(--blue-faint);cursor:pointer;
+  transition:all .2s;
+}
+.dnd-chip-placed:hover{border-color:var(--blue);background:rgba(93,213,252,.1)}
+.dnd-drop{
+  min-height:90px;border:2px dashed rgba(93,213,252,.15);
+  border-radius:4px;padding:1rem;
+  display:flex;flex-wrap:wrap;gap:.55rem;align-items:flex-start;
+  transition:border-color .25s,background .25s;
+  position:relative;
+}
+.dnd-drop.over{border-color:var(--blue);background:rgba(93,213,252,.03)}
+.dnd-drop-label{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.18em;
+  color:rgba(93,213,252,.18);pointer-events:none;white-space:nowrap;
+  transition:opacity .3s;
+}
+.dnd-drop.has-items .dnd-drop-label{opacity:0}
+
+/* ══════════════════════════════════════════
+   SLIDE 6: CLOSING
+══════════════════════════════════════════ */
+.slide--closing{
+  background:linear-gradient(180deg, var(--bg) 0%, #07070e 100%);
+  overflow-y:auto;align-items:flex-start;
+}
+.closing-inner{
+  max-width:820px;width:100%;
+  padding-top:5rem;padding-bottom:5rem;
+  margin:0 auto;
+}
+.closing-quote{
+  font-family:var(--font-serif);
+  font-size:clamp(1.05rem,2.2vw,1.3rem);
+  line-height:2.1;
+  border-left:2px solid var(--gold-dim);
+  padding-left:2rem;
+  margin-bottom:3rem;
+  min-height:9em;
+  position:relative;
+}
+.closing-quote::before{
+  content:'\201C';
+  position:absolute;left:-.2rem;top:-.7rem;
+  font-size:4rem;color:var(--gold-dim);
+  font-family:Georgia,serif;line-height:1;opacity:.4;
+}
+.closing-cta{margin-bottom:3rem}
+.closing-question{font-size:.95rem;color:var(--muted);margin-bottom:1.1rem}
+.closing-btn{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.8rem 2rem;
+  border:1px solid rgba(232,184,109,.25);
+  color:var(--gold);
+  font-family:var(--font-serif);font-size:.95rem;letter-spacing:.06em;
+  background:linear-gradient(135deg,rgba(232,184,109,.08),rgba(93,213,252,.04));
+  transition:border-color .3s,box-shadow .3s,transform .3s var(--ease);
+}
+.closing-btn:hover{
+  border-color:var(--gold);
+  box-shadow:0 0 36px var(--gold-glow);
+  transform:translateX(4px);
+}
+.closing-footer{
+  border-top:1px solid var(--subtler);padding-top:1.5rem;
+}
+.closing-footer p{
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.18em;
+  color:var(--subtler);margin-bottom:.3rem;
+}
+
+/* ══════════════════════════════════════════
+   KEYFRAMES
+══════════════════════════════════════════ */
+@keyframes fade-up{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes aurora{
+  0%{transform:translate(0,0) rotate(0deg) scale(1)}
+  100%{transform:translate(4%,3%) rotate(8deg) scale(1.05)}
+}
+@keyframes bounce{
+  from{transform:translateY(0)}
+  to{transform:translateY(5px)}
+}
+@keyframes float-tag{
+  from{transform:translateY(0)}
+  to{transform:translateY(-10px)}
+}
+@keyframes shimmer{
+  0%{background-position:0 50%}
+  100%{background-position:200% 50%}
+}
+@keyframes pulse-gold{
+  0%,100%{opacity:1}50%{opacity:.5}
+}
+@keyframes spin{
+  from{transform:rotate(0)}to{transform:rotate(360deg)}
+}
+
+/* ══════════════════════════════════════════
+   SCROLL REVEAL (within slides)
+══════════════════════════════════════════ */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media(max-width:700px){
+  .tags-layout,.scratch-layout{padding-top:4rem;padding-bottom:4rem}
+  .exhibit-art{display:none}
+  .exhibit{grid-template-columns:1fr}
+  .museum-tag,.slide-counter{font-size:.52rem}
+  .side-dots{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Global UI ── -->
+<div class="museum-tag">SOHU MISCONCEPTIONS MUSEUM · 2024</div>
+<div class="slide-counter">
+  <span class="slide-counter__current" id="sc-cur">01</span>
+  <span>/</span>
+  <span>06</span>
+</div>
+
+<nav class="side-dots" id="side-dots" aria-label="章节导航">
+  <button class="side-dot active" data-to="0" title="Hero" aria-label="开场"></button>
+  <button class="side-dot" data-to="1" title="偏见选择" aria-label="偏见选择"></button>
+  <button class="side-dot" data-to="2" title="误解博物馆" aria-label="误解博物馆"></button>
+  <button class="side-dot" data-to="3" title="认知纠偏" aria-label="认知纠偏"></button>
+  <button class="side-dot" data-to="4" title="标签解构" aria-label="标签解构"></button>
+  <button class="side-dot" data-to="5" title="离馆词" aria-label="离馆词"></button>
+</nav>
+
+<div class="nav-arrows" id="nav-arrows">
+  <button class="nav-arrow" id="btn-prev" aria-label="上一页" title="↑">↑</button>
+  <span class="nav-hint">SCROLL · ARROW KEYS</span>
+  <button class="nav-arrow" id="btn-next" aria-label="下一页" title="↓">↓</button>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 1: HERO
+════════════════════════════════════════ -->
+<div class="slide slide--hero is-active" id="slide-0">
+  <div class="hero-aurora" aria-hidden="true"></div>
+  <div class="hero-aurora-2" aria-hidden="true"></div>
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge" aria-hidden="true">EXHIBIT NO. 0001 &nbsp;·&nbsp; 认知纠偏馆</div>
+    <h1 class="hero-title" id="hero-title" aria-label="你以为你认识搜狐吗？">
+      <span class="tw-cursor" id="hero-cursor"></span>
+    </h1>
+    <p class="hero-sub">
+      也许你认识的，只是它的一部分
+      <em>A Museum of Misconceptions &amp; Cognitive Correction Lab</em>
+    </p>
+    <button class="hero-enter" onclick="goTo(1)" aria-label="进入展馆">
+      <span>带着你的偏见进入</span>
+      <span class="hero-enter-arrow" aria-hidden="true">↓</span>
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 2: BIAS SELECTION
+════════════════════════════════════════ -->
+<div class="slide slide--bias is-future" id="slide-1">
+  <div class="slide-inner">
+    <div class="reveal">
+      <div class="slide-label">GALLERY I · 入馆登记</div>
+      <h2 class="slide-title">你带着哪种偏见走进来？</h2>
+      <p class="slide-desc">提到搜狐，你的第一反应是什么？选择最接近你印象的一项，带着它继续参观。</p>
+    </div>
+    <div class="bias-grid reveal" id="bias-grid" role="radiogroup">
+      <div class="bias-card" data-bias="portal" role="radio" tabindex="0" aria-checked="false">
+        <div class="bc bc-tl"></div><div class="bc bc-tr"></div><div class="bc bc-bl"></div><div class="bc bc-br"></div>
+        <div class="bias-card__num">MISCONCEPTION · 01</div>
+        <span class="bias-card__icon" aria-hidden="true">🏛️</span>
+        <h3 class="bias-card__text">搜狐只是老牌门户</h3>
+      </div>
+      <div class="bias-card" data-bias="news" role="radio" tabindex="0" aria-checked="false">
+        <div class="bc bc-tl"></div><div class="bc bc-tr"></div><div class="bc bc-bl"></div><div class="bc bc-br"></div>
+        <div class="bias-card__num">MISCONCEPTION · 02</div>
+        <span class="bias-card__icon" aria-hidden="true">📰</span>
+        <h3 class="bias-card__text">搜狐只是新闻网站</h3>
+      </div>
+      <div class="bias-card" data-bias="oldtech" role="radio" tabindex="0" aria-checked="false">
+        <div class="bc bc-tl"></div><div class="bc bc-tr"></div><div class="bc bc-bl"></div><div class="bc bc-br"></div>
+        <div class="bias-card__num">MISCONCEPTION · 03</div>
+        <span class="bias-card__icon" aria-hidden="true">⏳</span>
+        <h3 class="bias-card__text">搜狐属于互联网旧时代</h3>
+      </div>
+      <div class="bias-card" data-bias="distant" role="radio" tabindex="0" aria-checked="false">
+        <div class="bc bc-tl"></div><div class="bc bc-tr"></div><div class="bc bc-bl"></div><div class="bc bc-br"></div>
+        <div class="bias-card__num">MISCONCEPTION · 04</div>
+        <span class="bias-card__icon" aria-hidden="true">🧓</span>
+        <h3 class="bias-card__text">搜狐离年轻人很远</h3>
+      </div>
+    </div>
+    <div class="bias-confirm" id="bias-confirm">
+      <span class="confirm-stamp">已记录</span>
+      <div>
+        <p class="confirm-text">你带着「<strong id="confirm-label"></strong>」的偏见进入本馆。</p>
+        <p class="confirm-sub">请继续参观，看看这个偏见能否经得起检验。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 3: MUSEUM CAROUSEL
+════════════════════════════════════════ -->
+<div class="slide slide--museum is-future" id="slide-2">
+  <!-- Grid bg via CSS ::before -->
+  <div class="museum-track-wrap" id="museum-track-wrap">
+    <div class="museum-track" id="museum-track">
+
+      <!-- Exhibit 01 -->
+      <div class="exhibit" data-idx="0">
+        <div class="exhibit-art">
+          <div class="artifact-frame">
+            <div class="frame-corner tl"></div><div class="frame-corner tr"></div>
+            <div class="frame-corner bl"></div><div class="frame-corner br"></div>
+            <svg class="artifact-svg" viewBox="0 0 120 90" aria-hidden="true">
+              <rect x="0" y="0" width="120" height="90" rx="6" fill="#1a1a2e" stroke="rgba(232,184,109,.35)" stroke-width="1"/>
+              <rect x="0" y="0" width="120" height="22" rx="6 6 0 0" fill="#24243c"/>
+              <rect x="0" y="16" width="120" height="6" fill="#24243c"/>
+              <circle cx="14" cy="11" r="4" fill="rgba(255,75,75,.65)"/>
+              <circle cx="27" cy="11" r="4" fill="rgba(232,184,109,.65)"/>
+              <circle cx="40" cy="11" r="4" fill="rgba(100,200,100,.65)"/>
+              <rect x="50" y="6" width="60" height="10" rx="3" fill="rgba(255,255,255,.07)"/>
+              <text x="56" y="14" font-size="5.5" fill="rgba(255,255,255,.3)" font-family="monospace">sohu.com</text>
+              <rect x="6" y="28" width="108" height="3.5" rx="1.5" fill="rgba(232,184,109,.3)"/>
+              <rect x="6" y="35" width="80" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+              <rect x="6" y="40" width="96" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+              <rect x="6" y="45" width="68" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+              <rect x="6" y="54" width="52" height="24" rx="2" fill="rgba(93,213,252,.12)"/>
+              <rect x="63" y="54" width="51" height="11" rx="2" fill="rgba(232,184,109,.1)"/>
+              <rect x="63" y="68" width="51" height="10" rx="2" fill="rgba(232,184,109,.1)"/>
+            </svg>
+            <div class="artifact-label">SPECIMEN · PORTAL — ca. 1998</div>
+          </div>
+        </div>
+        <div class="exhibit-info">
+          <div class="exhibit-front">
+            <div class="exhibit-num">藏品 001 / 004</div>
+            <h3 class="exhibit-title">老牌门户网站</h3>
+            <p class="exhibit-year">ca. 1998 · PC 时代遗产</p>
+            <p class="exhibit-desc">一个以聚合资讯为生、停留在门户时代的早期互联网标本。用首页导航链接诠释整个互联网时代，至今应已消亡。</p>
+            <button class="btn-reveal" onclick="revealExhibit(0)">
+              <span>揭开真相</span><span>→</span>
+            </button>
+          </div>
+          <div class="exhibit-back">
+            <div class="exhibit-num">真相 001 / 004</div>
+            <h3 class="exhibit-title">搜狐是中国最早构建内容生态的互联网公司之一</h3>
+            <p class="exhibit-desc">从1998年创立至今，搜狐用25年验证了一个判断：优质内容不是流量的附属品，而是互联网的核心基础设施。视频自制《匆匆那年》《法医秦明》；搜狐新闻客户端日活超5000万——它从未只是"聚合"，它在主动创造内容价值。</p>
+            <ul class="truth-facts">
+              <li>搜狐视频自制剧总播放超10亿，头部内容获行业奖项</li>
+              <li>搜狐新闻客户端长期位列新闻类App前五</li>
+              <li>张朝阳1996年创立，是中国互联网第一批开拓者</li>
+            </ul>
+            <button class="btn-back" onclick="resetExhibit(0)">← 返回</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exhibit 02 -->
+      <div class="exhibit" data-idx="1">
+        <div class="exhibit-art">
+          <div class="artifact-frame">
+            <div class="frame-corner tl"></div><div class="frame-corner tr"></div>
+            <div class="frame-corner bl"></div><div class="frame-corner br"></div>
+            <svg class="artifact-svg" viewBox="0 0 120 90" aria-hidden="true">
+              <rect x="5" y="5" width="110" height="80" rx="2" fill="#1c1812" stroke="rgba(232,184,109,.25)" stroke-width="1"/>
+              <rect x="10" y="10" width="100" height="13" rx="1" fill="rgba(232,184,109,.12)"/>
+              <text x="60" y="20" text-anchor="middle" font-size="7.5" fill="rgba(232,184,109,.75)" font-family="serif" letter-spacing="4">搜 狐 日 报</text>
+              <line x1="10" y1="26" x2="110" y2="26" stroke="rgba(232,184,109,.3)" stroke-width=".5"/>
+              <rect x="10" y="29" width="100" height="8" rx="1" fill="rgba(255,255,255,.1)"/>
+              <text x="60" y="36" text-anchor="middle" font-size="5" fill="rgba(255,255,255,.4)" font-family="sans-serif">中国互联网开拓者的25年</text>
+              <line x1="56" y1="41" x2="56" y2="82" stroke="rgba(232,184,109,.12)" stroke-width=".5"/>
+              <rect x="10" y="43" width="44" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+              <rect x="10" y="48" width="44" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="10" y="53" width="38" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="10" y="58" width="44" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="10" y="63" width="32" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="10" y="68" width="44" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="10" y="73" width="40" height="2" rx="1" fill="rgba(255,255,255,.06)"/>
+              <rect x="60" y="43" width="48" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+              <rect x="60" y="48" width="48" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="60" y="53" width="36" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="60" y="58" width="48" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+              <rect x="60" y="66" width="48" height="12" rx="1" fill="rgba(93,213,252,.1)"/>
+            </svg>
+            <div class="artifact-label">SPECIMEN · SINGLE MEDIA — 单一标签</div>
+          </div>
+        </div>
+        <div class="exhibit-info">
+          <div class="exhibit-front">
+            <div class="exhibit-num">藏品 002 / 004</div>
+            <h3 class="exhibit-title">单一新闻平台</h3>
+            <p class="exhibit-year">业务单一 · 缺乏多样性假说</p>
+            <p class="exhibit-desc">一个只懂抓取新闻资讯的信息中间商，对内容价值缺乏深度理解，商业模式高度依赖资讯流量。</p>
+            <button class="btn-reveal" onclick="revealExhibit(1)">
+              <span>揭开真相</span><span>→</span>
+            </button>
+          </div>
+          <div class="exhibit-back">
+            <div class="exhibit-num">真相 002 / 004</div>
+            <h3 class="exhibit-title">搜狐拥有五条并行的完整业务生态</h3>
+            <p class="exhibit-desc">新闻只是入口，不是全部。搜狐视频（自制综艺/剧集）、畅游（纳斯达克上市游戏公司）、搜狐焦点（房产头部平台）、搜狐汽车——搜狐的商业矩阵早已超越任何单一标签。</p>
+            <ul class="truth-facts">
+              <li>畅游（Changyou）2009年独立在纳斯达克上市</li>
+              <li>搜狐焦点：中国最大房产信息平台之一</li>
+              <li>搜狐汽车：年内容量超百万条</li>
+            </ul>
+            <button class="btn-back" onclick="resetExhibit(1)">← 返回</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exhibit 03 -->
+      <div class="exhibit" data-idx="2">
+        <div class="exhibit-art">
+          <div class="artifact-frame">
+            <div class="frame-corner tl"></div><div class="frame-corner tr"></div>
+            <div class="frame-corner bl"></div><div class="frame-corner br"></div>
+            <svg class="artifact-svg" viewBox="0 0 120 90" aria-hidden="true">
+              <!-- Hourglass -->
+              <path d="M40,8 L80,8 L60,44 L80,82 L40,82 L60,44 Z" fill="none" stroke="rgba(232,184,109,.4)" stroke-width="1.5"/>
+              <path d="M43,10 L77,10 L61,42 Z" fill="rgba(232,184,109,.2)"/>
+              <path d="M54,60 L66,60 L70,80 L50,80 Z" fill="rgba(232,184,109,.22)"/>
+              <circle cx="60" cy="46" r="1.2" fill="rgba(232,184,109,.6)"/>
+              <circle cx="59" cy="50" r=".9" fill="rgba(232,184,109,.45)"/>
+              <circle cx="61" cy="54" r=".8" fill="rgba(232,184,109,.3)"/>
+              <rect x="34" y="5" width="52" height="4" rx="2" fill="rgba(232,184,109,.28)"/>
+              <rect x="34" y="81" width="52" height="4" rx="2" fill="rgba(232,184,109,.28)"/>
+              <text x="8" y="20" font-size="6.5" fill="rgba(232,184,109,.45)" font-family="monospace">1996</text>
+              <text x="88" y="20" font-size="6.5" fill="rgba(232,184,109,.45)" font-family="monospace">2010</text>
+              <text x="88" y="74" font-size="6.5" fill="rgba(93,213,252,.5)" font-family="monospace">2024</text>
+            </svg>
+            <div class="artifact-label">SPECIMEN · OLD ERA — 时代遗留物</div>
+          </div>
+        </div>
+        <div class="exhibit-info">
+          <div class="exhibit-front">
+            <div class="exhibit-num">藏品 003 / 004</div>
+            <h3 class="exhibit-title">互联网旧时代遗留物</h3>
+            <p class="exhibit-year">移动时代 · 迷失方向假说</p>
+            <p class="exhibit-desc">在移动互联网浪潮中迷失的时代遗留品，无力完成自我更新，停留在PC时代的惯性轨道上缓慢衰亡。</p>
+            <button class="btn-reveal" onclick="revealExhibit(2)">
+              <span>揭开真相</span><span>→</span>
+            </button>
+          </div>
+          <div class="exhibit-back">
+            <div class="exhibit-num">真相 003 / 004</div>
+            <h3 class="exhibit-title">搜狐的移动转型早于大部分同时代公司</h3>
+            <p class="exhibit-desc">搜狐新闻客户端是中国最早完成"订阅制内容流"改造的主流App之一。搜狐视频自制策略、畅游出海布局、AI内容分发技术持续投入——时代记忆是品牌优势，迭代才是日常。</p>
+            <ul class="truth-facts">
+              <li>搜狐新闻App 2012年上线，早于大多数"新媒体"</li>
+              <li>持续投入AI内容推荐与分发技术研发</li>
+              <li>搜狐视频自制内容连续多年荣获行业奖项</li>
+            </ul>
+            <button class="btn-back" onclick="resetExhibit(2)">← 返回</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exhibit 04 -->
+      <div class="exhibit" data-idx="3">
+        <div class="exhibit-art">
+          <div class="artifact-frame">
+            <div class="frame-corner tl"></div><div class="frame-corner tr"></div>
+            <div class="frame-corner bl"></div><div class="frame-corner br"></div>
+            <svg class="artifact-svg" viewBox="0 0 120 90" aria-hidden="true">
+              <!-- Older figure (left) -->
+              <circle cx="35" cy="28" r="11" fill="none" stroke="rgba(232,184,109,.5)" stroke-width="1.5"/>
+              <line x1="35" y1="39" x2="35" y2="62" stroke="rgba(232,184,109,.5)" stroke-width="1.5"/>
+              <line x1="35" y1="48" x2="23" y2="56" stroke="rgba(232,184,109,.5)" stroke-width="1.5"/>
+              <line x1="35" y1="48" x2="47" y2="56" stroke="rgba(232,184,109,.5)" stroke-width="1.5"/>
+              <line x1="35" y1="62" x2="26" y2="76" stroke="rgba(232,184,109,.5)" stroke-width="1.5"/>
+              <line x1="35" y1="62" x2="44" y2="76" stroke="rgba(232,184,109,.5)" stroke-width="1.5"/>
+              <!-- Younger figure (right) -->
+              <circle cx="85" cy="28" r="11" fill="none" stroke="rgba(93,213,252,.5)" stroke-width="1.5"/>
+              <line x1="85" y1="39" x2="85" y2="62" stroke="rgba(93,213,252,.5)" stroke-width="1.5"/>
+              <line x1="85" y1="48" x2="73" y2="56" stroke="rgba(93,213,252,.5)" stroke-width="1.5"/>
+              <line x1="85" y1="48" x2="97" y2="56" stroke="rgba(93,213,252,.5)" stroke-width="1.5"/>
+              <line x1="85" y1="62" x2="76" y2="76" stroke="rgba(93,213,252,.5)" stroke-width="1.5"/>
+              <line x1="85" y1="62" x2="94" y2="76" stroke="rgba(93,213,252,.5)" stroke-width="1.5"/>
+              <!-- Bridge -->
+              <line x1="47" y1="44" x2="73" y2="44" stroke="rgba(255,255,255,.15)" stroke-dasharray="3 2" stroke-width="1"/>
+              <text x="60" y="48" text-anchor="middle" font-size="14" fill="rgba(255,255,255,.12)" font-family="sans-serif">≈</text>
+              <!-- Sohu logo hint -->
+              <text x="60" y="85" text-anchor="middle" font-size="5.5" fill="rgba(232,184,109,.3)" font-family="monospace">搜狐</text>
+            </svg>
+            <div class="artifact-label">SPECIMEN · GENERATION GAP — 代际断层</div>
+          </div>
+        </div>
+        <div class="exhibit-info">
+          <div class="exhibit-front">
+            <div class="exhibit-num">藏品 004 / 004</div>
+            <h3 class="exhibit-title">离年轻人很远</h3>
+            <p class="exhibit-year">Z世代 · 代际断层假说</p>
+            <p class="exhibit-desc">一个与年轻一代脱节的互联网恐龙，无法触达当代用户群体，只能吸引中老年网民留存于平台。</p>
+            <button class="btn-reveal" onclick="revealExhibit(3)">
+              <span>揭开真相</span><span>→</span>
+            </button>
+          </div>
+          <div class="exhibit-back">
+            <div class="exhibit-num">真相 004 / 004</div>
+            <h3 class="exhibit-title">搜狐的年轻化策略贯穿多条产品线</h3>
+            <p class="exhibit-desc">搜狐视频以悬疑剧、青春剧为核心；畅游持续引进年轻人热爱的游戏IP；狐友社区主打年轻社交场景。最重要的是——搜狐每年都在主动寻找、培养、留住年轻的你。</p>
+            <ul class="truth-facts">
+              <li>搜狐视频用户中18—35岁占比超60%</li>
+              <li>畅游2023年新游主打年轻玩家群体</li>
+              <li>搜狐校招规模连续多年稳步增长</li>
+            </ul>
+            <button class="btn-back" onclick="resetExhibit(3)">← 返回</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /museum-track -->
+  </div><!-- /museum-track-wrap -->
+
+  <!-- Museum bottom navigation -->
+  <div class="museum-nav" id="museum-nav">
+    <button class="museum-arrow" id="museum-prev" aria-label="上一件展品" disabled>←</button>
+    <span class="museum-exhibit-count" id="museum-count">01 / 04</span>
+    <button class="museum-dot active" data-eidx="0" aria-label="展品1"></button>
+    <button class="museum-dot" data-eidx="1" aria-label="展品2"></button>
+    <button class="museum-dot" data-eidx="2" aria-label="展品3"></button>
+    <button class="museum-dot" data-eidx="3" aria-label="展品4"></button>
+    <button class="museum-arrow" id="museum-next" aria-label="下一件展品">→</button>
+  </div>
+  <button class="museum-continue" id="museum-continue" onclick="goTo(3)" aria-label="进入实验室">
+    <span>进入实验室</span><span>→</span>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 4: SCRATCH LAB
+════════════════════════════════════════ -->
+<div class="slide slide--scratch is-future" id="slide-3">
+  <div class="scratch-layout">
+    <div class="scratch-left">
+      <div class="slide-label reveal">GALLERY III · 认知纠偏实验室</div>
+      <h2 class="slide-title reveal">动手纠偏</h2>
+      <p class="slide-desc reveal">刮开旧标签，看看偏见下面藏着什么。用行动替代观点。</p>
+    </div>
+    <div class="scratch-right">
+      <div class="scratch-box">
+        <div class="scratch-reveal">
+          <div class="scratch-reveal-inner">
+            <p class="scratch-reveal-pre">你刮开的是——</p>
+            <h3 class="scratch-reveal-word">搜狐</h3>
+            <p class="scratch-reveal-line">一个用内容丈量时代的<br>互联网生态创造者</p>
+          </div>
+        </div>
+        <canvas id="scratch-canvas" aria-label="刮刮卡"></canvas>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div class="scratch-progress" id="scratch-progress">
+          <svg viewBox="0 0 52 52">
+            <circle class="scratch-ring-bg" cx="26" cy="26" r="22"/>
+            <circle class="scratch-ring-fill" id="scratch-ring" cx="26" cy="26" r="22"/>
+          </svg>
+          <div class="scratch-pct" id="scratch-pct">0%</div>
+        </div>
+        <p class="scratch-hint" id="scratch-hint">用鼠标刮开灰色区域</p>
+        <button class="scratch-reset" id="scratch-reset">↺ 重置</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 5: TAG DECONSTRUCTION + DnD
+════════════════════════════════════════ -->
+<div class="slide slide--tags is-future" id="slide-4">
+  <div class="slide-inner" style="max-width:1100px">
+    <div class="reveal" style="margin-bottom:1.5rem">
+      <div class="slide-label">GALLERY IV · 标签解构 + 重新定义</div>
+      <h2 class="slide-title">一个标签，装不下搜狐</h2>
+    </div>
+    <div class="tags-layout">
+      <!-- Tag cloud + explain -->
+      <div>
+        <p class="slide-desc reveal" style="margin-bottom:1.2rem">点击任一标签，看看它为何既成立又不够用</p>
+        <div class="tag-cloud reveal" id="tag-cloud"></div>
+        <div class="tag-explain" id="tag-explain">
+          <h3 class="tag-explain-name" id="te-name"></h3>
+          <p class="tag-explain-why" id="te-why"></p>
+          <p class="tag-explain-but" id="te-but"></p>
+          <button class="tag-explain-close" onclick="closeTagExplain()" aria-label="关闭">✕</button>
+        </div>
+      </div>
+      <!-- DnD -->
+      <div class="dnd-section reveal">
+        <h3 class="dnd-title">重新定义搜狐</h3>
+        <p class="dnd-desc">把你认同的标签拖入下方，拼出你眼中的搜狐</p>
+        <div class="dnd-source" id="dnd-source"></div>
+        <div class="dnd-drop" id="dnd-drop">
+          <span class="dnd-drop-label">我认为的搜狐</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 6: CLOSING
+════════════════════════════════════════ -->
+<div class="slide slide--closing is-future" id="slide-5">
+  <div class="closing-inner">
+    <div class="reveal">
+      <div class="slide-label">EPILOGUE · 离馆词</div>
+      <h2 class="slide-title">让我把搜狐讲给你听</h2>
+    </div>
+    <blockquote class="closing-quote reveal" id="closing-quote">
+      <span class="tw-cursor" id="closing-cursor"></span>
+    </blockquote>
+    <div class="closing-cta reveal">
+      <p class="closing-question">你现在对搜狐有了新的认识了吗？</p>
+      <a href="https://www.sohu.com" target="_blank" rel="noopener" class="closing-btn">
+        访问搜狐官网 →
+      </a>
+    </div>
+    <footer class="closing-footer reveal">
+      <p>SOHU MISCONCEPTIONS MUSEUM · 搜狐认知纠偏馆</p>
+      <p>Campus Recruitment Exhibition · 2024</p>
+    </footer>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ──────────────────────────────────────
+   SLIDE NAVIGATOR
+────────────────────────────────────── */
+const SLIDE_COUNT = 6;
+let cur = 0;
+let transitioning = false;
+const slides = Array.from({length:SLIDE_COUNT},(_,i)=>document.getElementById('slide-'+i));
+const sideDots = document.querySelectorAll('.side-dot');
+const scCur = document.getElementById('sc-cur');
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
+
+function goTo(idx, src='api') {
+  if (transitioning || idx === cur || idx < 0 || idx >= SLIDE_COUNT) return;
+  // Museum slide: only leave if on museum and interaction handled
+  if (cur === 2 && idx > 2 && src !== 'force') {
+    // Allow leaving museum from continue button (src='api') or arrows
+  }
+  transitioning = true;
+  slides[cur].classList.remove('is-active');
+  slides[cur].classList.add(idx > cur ? 'is-past' : 'is-future');
+  slides[idx].classList.remove('is-past','is-future');
+  slides[idx].classList.add('is-active');
+  cur = idx;
+  updateNavUI();
+  onSlideEnter(idx);
+  setTimeout(()=>{ transitioning=false; }, 750);
+}
+
+function goNext(){ goTo(cur+1,'nav') }
+function goPrev(){ goTo(cur-1,'nav') }
+
+function updateNavUI(){
+  scCur.textContent = String(cur+1).padStart(2,'0');
+  sideDots.forEach((d,i)=>d.classList.toggle('active',i===cur));
+  btnPrev.disabled = cur===0;
+  btnNext.disabled = cur===SLIDE_COUNT-1;
+  // Hide nav arrows on museum slide (has internal nav)
+  document.getElementById('nav-arrows').style.opacity = cur===2 ? '0' : '1';
+  document.getElementById('nav-arrows').style.pointerEvents = cur===2 ? 'none' : 'all';
+}
+
+sideDots.forEach(d=>d.addEventListener('click',()=>goTo(parseInt(d.dataset.to),'nav')));
+btnPrev.addEventListener('click',goPrev);
+btnNext.addEventListener('click',goNext);
+
+/* Keyboard */
+document.addEventListener('keydown',e=>{
+  if(cur===2){
+    // Museum internal nav
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') { e.preventDefault(); museumNext(); }
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp') { e.preventDefault(); museumPrev(); }
+    return;
+  }
+  if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); goNext(); }
+  if(e.key==='ArrowUp'||e.key==='PageUp'){ e.preventDefault(); goPrev(); }
+});
+
+/* Wheel (debounced) */
+let lastWheel=0;
+document.addEventListener('wheel',e=>{
+  const now=Date.now();
+  if(now-lastWheel<900) return;
+  lastWheel=now;
+  if(cur===2){
+    if(e.deltaY>0) museumNext(); else museumPrev();
+    return;
+  }
+  if(e.deltaY>30) goNext(); else if(e.deltaY<-30) goPrev();
+},{passive:true});
+
+/* Touch swipe */
+let touchY0=0;
+document.addEventListener('touchstart',e=>{ touchY0=e.touches[0].clientY; },{passive:true});
+document.addEventListener('touchend',e=>{
+  const dy=touchY0-e.changedTouches[0].clientY;
+  if(Math.abs(dy)<50) return;
+  if(cur===2){ dy>0?museumNext():museumPrev(); return; }
+  dy>0?goNext():goPrev();
+},{passive:true});
+
+/* ──────────────────────────────────────
+   SLIDE ENTER HOOKS
+────────────────────────────────────── */
+function onSlideEnter(idx){
+  // Trigger scroll-reveal for new slide
+  setTimeout(()=>revealInSlide(slides[idx]),100);
+  if(idx===0) startHeroTypewriter();
+  if(idx===5) startClosingTypewriter();
+}
+
+function revealInSlide(slide){
+  slide.querySelectorAll('.reveal:not(.in)').forEach((el,i)=>{
+    setTimeout(()=>el.classList.add('in'), i*120);
+  });
+}
+
+/* ──────────────────────────────────────
+   TYPEWRITER UTILITY
+────────────────────────────────────── */
+function typewrite(container, cursor, text, speed, onDone){
+  const chars=Array.from(text);
+  let i=0;
+  function tick(){
+    if(i<chars.length){
+      if(chars[i]==='\n'){
+        container.insertBefore(document.createElement('br'),cursor);
+      } else {
+        container.insertBefore(document.createTextNode(chars[i]),cursor);
+      }
+      i++;
+      setTimeout(tick, speed+(Math.random()*25-12));
+    } else {
+      if(cursor) cursor.style.display='none';
+      if(onDone) onDone();
+    }
+  }
+  setTimeout(tick,500);
+}
+
+/* ──────────────────────────────────────
+   SLIDE 1: HERO — PARTICLES + TYPEWRITER
+────────────────────────────────────── */
+let heroAnimRunning=false;
+let heroRaf=null;
+
+function initHeroCanvas(){
+  const canvas=document.getElementById('hero-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,pts=[];
+
+  function resize(){
+    W=canvas.width=canvas.offsetWidth;
+    H=canvas.height=canvas.offsetHeight;
+  }
+
+  function makePoints(){
+    pts=Array.from({length:80},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      vx:(Math.random()-.5)*.32, vy:(Math.random()-.5)*.32,
+      r:Math.random()*1.2+.4,
+      phase:Math.random()*Math.PI*2,
+      gold:Math.random()>.45,
+    }));
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    const time=t*.001;
+    // Draw connecting lines
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<110){
+          const a=(1-dist/110)*.12;
+          ctx.strokeStyle=`rgba(232,184,109,${a})`;
+          ctx.lineWidth=.5;
+          ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();
+        }
+      }
+    }
+    // Draw particles
+    for(const p of pts){
+      p.x=(p.x+p.vx+W)%W;
+      p.y=(p.y+p.vy+H)%H;
+      const a=((Math.sin(time+p.phase)+1)/2)*.5+.1;
+      const [r,g,b]=p.gold?[232,184,109]:[93,213,252];
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${r},${g},${b},${a})`;ctx.fill();
+    }
+    heroRaf=requestAnimationFrame(draw);
+  }
+
+  resize(); makePoints();
+  window.addEventListener('resize',()=>{resize();makePoints()},{passive:true});
+
+  new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){
+      if(!heroAnimRunning){ heroAnimRunning=true; heroRaf=requestAnimationFrame(draw); }
+    } else {
+      heroAnimRunning=false; cancelAnimationFrame(heroRaf);
+    }
+  },{threshold:.1}).observe(document.getElementById('slide-0'));
+}
+
+let heroTyped=false;
+function startHeroTypewriter(){
+  if(heroTyped) return; heroTyped=true;
+  const container=document.getElementById('hero-title');
+  const cursor=document.getElementById('hero-cursor');
+  setTimeout(()=>typewrite(container,cursor,'你以为你认识搜狐吗？',110),200);
+}
+
+/* ──────────────────────────────────────
+   SLIDE 2: BIAS CARDS — 3D TILT + SELECTION
+────────────────────────────────────── */
+const BIAS_LABELS={
+  portal:'搜狐只是老牌门户',
+  news:'搜狐只是新闻网站',
+  oldtech:'搜狐属于互联网旧时代',
+  distant:'搜狐离年轻人很远',
+};
+
+function initBiasCards(){
+  const cards=document.querySelectorAll('.bias-card');
+  const confirm=document.getElementById('bias-confirm');
+  const confirmLabel=document.getElementById('confirm-label');
+
+  cards.forEach(card=>{
+    // 3D tilt on hover
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const cx=r.left+r.width/2, cy=r.top+r.height/2;
+      const dx=(e.clientX-cx)/(r.width/2);
+      const dy=(e.clientY-cy)/(r.height/2);
+      card.style.transform=`perspective(800px) rotateY(${dx*9}deg) rotateX(${-dy*9}deg) translateY(-4px)`;
+    });
+    card.addEventListener('mouseleave',()=>{
+      card.style.transform='';
+    });
+
+    function select(){
+      cards.forEach(c=>{c.classList.remove('selected');c.setAttribute('aria-checked','false');c.style.transform='';});
+      card.classList.add('selected');
+      card.setAttribute('aria-checked','true');
+      window.selectedBias=card.dataset.bias;
+      confirmLabel.textContent=BIAS_LABELS[card.dataset.bias];
+      confirm.classList.add('show');
+      setTimeout(()=>goTo(2),2000);
+    }
+    card.addEventListener('click',select);
+    card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); select(); }});
+  });
+}
+
+/* ──────────────────────────────────────
+   SLIDE 3: MUSEUM CAROUSEL
+────────────────────────────────────── */
+let museumCur=0;
+const MUSEUM_COUNT=4;
+let seenAll=false;
+const seenExhibits=new Set();
+
+function museumGoTo(idx){
+  if(idx<0||idx>=MUSEUM_COUNT) return;
+  museumCur=idx;
+  document.getElementById('museum-track').style.transform=`translateX(-${idx*100}%)`;
+  document.getElementById('museum-count').textContent=String(idx+1).padStart(2,'0')+' / 04';
+  document.querySelectorAll('.museum-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  document.getElementById('museum-prev').disabled=idx===0;
+  document.getElementById('museum-next').disabled=idx===MUSEUM_COUNT-1;
+  seenExhibits.add(idx);
+  checkMuseumComplete();
+}
+
+function museumNext(){ museumGoTo(museumCur+1) }
+function museumPrev(){ museumGoTo(museumCur-1) }
+
+function checkMuseumComplete(){
+  if(seenExhibits.size>=MUSEUM_COUNT && !seenAll){
+    seenAll=true;
+    document.getElementById('museum-continue').classList.add('show');
+  }
+}
+
+function revealExhibit(idx){
+  document.querySelectorAll('.exhibit')[idx].classList.add('is-revealed');
+  seenExhibits.add(idx);
+  checkMuseumComplete();
+}
+function resetExhibit(idx){
+  document.querySelectorAll('.exhibit')[idx].classList.remove('is-revealed');
+}
+
+function initMuseum(){
+  document.querySelectorAll('.museum-dot').forEach(d=>{
+    d.addEventListener('click',()=>museumGoTo(parseInt(d.dataset.eidx)));
+  });
+  document.getElementById('museum-prev').addEventListener('click',museumPrev);
+  document.getElementById('museum-next').addEventListener('click',museumNext);
+}
+
+/* ──────────────────────────────────────
+   SLIDE 4: SCRATCH CARD
+────────────────────────────────────── */
+function initScratch(){
+  const canvas=document.getElementById('scratch-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const ring=document.getElementById('scratch-ring');
+  const pctEl=document.getElementById('scratch-pct');
+  const hintEl=document.getElementById('scratch-hint');
+  const resetBtn=document.getElementById('scratch-reset');
+  const CIRC=2*Math.PI*22; // ~138.2
+
+  function size(){
+    const box=canvas.parentElement;
+    canvas.width=box.offsetWidth;
+    canvas.height=box.offsetHeight;
+    drawCover();
+  }
+
+  function drawCover(){
+    const W=canvas.width,H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+    // Sepia background
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,'#22180a');g.addColorStop(.5,'#1a1208');g.addColorStop(1,'#241a0c');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // Hatch lines
+    ctx.strokeStyle='rgba(180,140,60,.06)';ctx.lineWidth=1;
+    for(let x=-H;x<W+H;x+=14){
+      ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+H,H);ctx.stroke();
+    }
+    // Borders
+    ctx.strokeStyle='rgba(180,130,50,.4)';ctx.lineWidth=1.5;ctx.strokeRect(10,10,W-20,H-20);
+    ctx.strokeStyle='rgba(180,130,50,.12)';ctx.lineWidth=1;ctx.strokeRect(16,16,W-32,H-32);
+    // Main text
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font=`bold ${Math.floor(H*.15)}px 'Noto Serif SC',serif`;
+    ctx.fillStyle='rgba(200,155,65,.88)';
+    ctx.fillText('旧 标 签',W/2,H/2-H*.1);
+    ctx.font=`${Math.floor(H*.075)}px 'Noto Sans SC',sans-serif`;
+    ctx.fillStyle='rgba(160,120,45,.58)';
+    ctx.fillText('刮开，看看偏见之下是什么',W/2,H/2+H*.1);
+    // Corner dots
+    [[W*.15,H*.15],[W*.85,H*.15],[W*.15,H*.85],[W*.85,H*.85]].forEach(([x,y])=>{
+      ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);
+      ctx.fillStyle='rgba(180,130,50,.45)';ctx.fill();
+    });
+  }
+
+  size();
+  window.addEventListener('resize',size,{passive:true});
+
+  let drawing=false,done=false,pct=0;
+  const BRUSH=Math.max(26,canvas.width*.055);
+
+  function getPos(e){
+    const r=canvas.getBoundingClientRect();
+    const s=e.touches?e.touches[0]:e;
+    return{x:(s.clientX-r.left)*(canvas.width/r.width),y:(s.clientY-r.top)*(canvas.height/r.height)};
+  }
+
+  function scratch(x,y){
+    if(done) return;
+    ctx.globalCompositeOperation='destination-out';
+    const gr=ctx.createRadialGradient(x,y,0,x,y,BRUSH);
+    gr.addColorStop(0,'rgba(0,0,0,1)');
+    gr.addColorStop(.65,'rgba(0,0,0,.9)');
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr;
+    ctx.beginPath();ctx.arc(x,y,BRUSH,0,Math.PI*2);ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  canvas.addEventListener('pointerdown',e=>{ drawing=true; canvas.setPointerCapture(e.pointerId); const p=getPos(e);scratch(p.x,p.y); });
+  canvas.addEventListener('pointermove',e=>{ if(!drawing)return; const p=getPos(e);scratch(p.x,p.y); });
+  canvas.addEventListener('pointerup',()=>{ drawing=false; samplePct(); });
+  canvas.addEventListener('pointercancel',()=>{ drawing=false; });
+
+  let sampleTimer;
+  function samplePct(){
+    clearTimeout(sampleTimer);
+    sampleTimer=setTimeout(()=>{
+      const W=canvas.width,H=canvas.height;
+      const data=ctx.getImageData(0,0,W,H).data;
+      let t=0;
+      for(let i=3;i<data.length;i+=4) if(data[i]<64) t++;
+      pct=Math.min(100,Math.round(t/(W*H)*100));
+      // Update ring
+      const offset=CIRC-(CIRC*pct/100);
+      ring.style.strokeDashoffset=offset;
+      pctEl.textContent=pct+'%';
+      if(pct>=58 && !done){
+        done=true;
+        canvas.style.opacity='0';
+        canvas.style.pointerEvents='none';
+        hintEl.textContent='✦ 偏见已刮开';
+        resetBtn.classList.add('show');
+        ring.style.stroke='var(--blue)';
+      }
+    },280);
+  }
+
+  resetBtn.addEventListener('click',()=>{
+    done=false;pct=0;
+    canvas.style.opacity='1';canvas.style.pointerEvents='auto';
+    ring.style.strokeDashoffset=CIRC;ring.style.stroke='var(--gold)';
+    pctEl.textContent='0%';
+    hintEl.textContent='用鼠标刮开灰色区域';
+    resetBtn.classList.remove('show');
+    size();
+  });
+}
+
+/* ──────────────────────────────────────
+   SLIDE 5: TAG CLOUD
+────────────────────────────────────── */
+const TAG_DATA={
+  '门户':{
+    why:'✓ 搜狐确实是中国最早的综合门户之一，承载了数亿人的互联网启蒙记忆，认知度极高。',
+    but:'✗ 但"门户"只是起点，不是终点。搜狐同时是视频平台、游戏公司、内容生态——用起点定义一段25年的旅程，太轻了。',
+  },
+  '媒体':{
+    why:'✓ 搜狐新闻客户端和搜狐网是主流新闻入口，新闻内容生产与分发能力在业界领先。',
+    but:'✗ 但搜狐的商业矩阵远超"媒体"——游戏、视频、房产、汽车垂直平台，它是操盘多条内容赛道的生态体。',
+  },
+  '内容':{
+    why:'✓ 搜狐视频、自制综艺、自媒体矩阵都体现了强大的内容创造与分发能力。',
+    but:'✗ 但搜狐的护城河是技术×内容×社区的复合体，单说"内容"无法解释它的盈利结构和商业逻辑。',
+  },
+  '品牌':{
+    why:'✓ 搜狐是中国互联网认知度最高的品牌之一，品牌价值沉淀深厚，情感连接真实强烈。',
+    but:'✗ 但品牌之下是持续迭代的产品体系——它靠产品力活着，不是靠情怀撑着。',
+  },
+  '游戏':{
+    why:'✓ 畅游（Changyou）是搜狐旗下独立上市的游戏公司，游戏业务是其重要收入来源。',
+    but:'✗ 但游戏只是搜狐生态的一条腿。新闻、视频、房产、汽车……哪一个单独拿出来都是以偏概全。',
+  },
+  '时代记忆':{
+    why:'✓ 很多人对搜狐最深的记忆停留在BBS时代和2008北京奥运，那是真实的集体情感资产。',
+    but:'✗ 但记忆不等于现在。搜狐每年都在用户产品、内容运营、技术基建上迭代更新——它活在当下，不只活在记忆里。',
+  },
+};
+const TAG_POS=[
+  {x:5 ,y:10,sz:1.45,rot:-3},{x:48,y:4 ,sz:1.1,rot:1},
+  {x:68,y:38,sz:1.6,rot:2},{x:12,y:55,sz:1.2,rot:-2},
+  {x:52,y:62,sz:1.35,rot:3},{x:28,y:30,sz:1.5,rot:-1},
+];
+
+function initTagCloud(){
+  const cloud=document.getElementById('tag-cloud');
+  if(!cloud) return;
+  Object.keys(TAG_DATA).forEach((tag,i)=>{
+    const pos=TAG_POS[i]||{x:20+i*12,y:30,sz:1.2,rot:0};
+    const btn=document.createElement('button');
+    btn.className='tag-bubble';
+    btn.textContent=tag;btn.dataset.tag=tag;
+    btn.style.left=pos.x+'%';btn.style.top=pos.y+'%';
+    btn.style.fontSize=pos.sz+'rem';
+    btn.style.transform=`rotate(${pos.rot}deg)`;
+    btn.style.animationDelay=(i*.15)+'s';
+    btn.setAttribute('aria-label',tag);
+    btn.addEventListener('click',()=>{
+      cloud.querySelectorAll('.tag-bubble').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const d=TAG_DATA[tag];
+      document.getElementById('te-name').textContent=tag;
+      document.getElementById('te-why').textContent=d.why;
+      document.getElementById('te-but').textContent=d.but;
+      document.getElementById('tag-explain').classList.add('show');
+    });
+    cloud.appendChild(btn);
+  });
+}
+
+function closeTagExplain(){
+  document.getElementById('tag-explain').classList.remove('show');
+  document.querySelectorAll('.tag-bubble').forEach(b=>b.classList.remove('active'));
+}
+
+/* ──────────────────────────────────────
+   SLIDE 5: DND
+────────────────────────────────────── */
+const DND_TAGS=['门户网站','媒体平台','内容生态','游戏公司','技术公司','时代记忆','视频平台','新闻资讯'];
+
+function initDnD(){
+  const src=document.getElementById('dnd-source');
+  const drop=document.getElementById('dnd-drop');
+  if(!src||!drop) return;
+
+  DND_TAGS.forEach(tag=>{
+    const chip=document.createElement('span');
+    chip.className='dnd-chip';chip.textContent=tag;
+    chip.draggable=true;chip.dataset.tag=tag;
+    chip.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text',tag);
+      setTimeout(()=>chip.classList.add('dragging'),0);
+    });
+    chip.addEventListener('dragend',()=>chip.classList.remove('dragging'));
+    src.appendChild(chip);
+  });
+
+  drop.addEventListener('dragover',e=>{ e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave',e=>{ if(!drop.contains(e.relatedTarget)) drop.classList.remove('over'); });
+  drop.addEventListener('drop',e=>{
+    e.preventDefault(); drop.classList.remove('over');
+    const tag=e.dataTransfer.getData('text');
+    if(!DND_TAGS.includes(tag)) return;
+    if(drop.querySelector(`[data-tag="${CSS.escape(tag)}"]`)) return;
+    const orig=src.querySelector(`[data-tag="${CSS.escape(tag)}"]`);
+    const placed=document.createElement('span');
+    placed.className='dnd-chip-placed';placed.textContent=tag;placed.dataset.tag=tag;
+    placed.title='点击移除';
+    placed.addEventListener('click',()=>{ placed.remove(); if(orig) orig.classList.remove('placed'); if(!drop.querySelector('.dnd-chip-placed')) drop.classList.remove('has-items'); });
+    drop.appendChild(placed);
+    if(orig) orig.classList.add('placed');
+    drop.classList.add('has-items');
+  });
+}
+
+/* ──────────────────────────────────────
+   SLIDE 6: CLOSING TYPEWRITER
+────────────────────────────────────── */
+const CLOSING_TEXT=`如果我要把搜狐讲给朋友听，我不会只说"那个老门户"——\n\n我会说：它是一代中国互联网人的公共广场，是无数内容创作者的第一个舞台，是在算法浪潮里依然坚持内容价值判断的媒体守护者。它有新闻、有视频、有游戏、有社区——它不是一个产品，它是一个生态。\n\n它不完美，但它真实。它不是最新的，但它从未停止迭代。\n\n如果你愿意仔细看，你会发现搜狐一直在那里——用内容丈量时代，用平台连接人。\n\n而现在，它也在等待愿意重新认识它的你。`;
+
+let closingTyped=false;
+function startClosingTypewriter(){
+  if(closingTyped) return; closingTyped=true;
+  const container=document.getElementById('closing-quote');
+  const cursor=document.getElementById('closing-cursor');
+  setTimeout(()=>typewrite(container,cursor,CLOSING_TEXT,35),400);
+}
+
+/* ──────────────────────────────────────
+   INIT
+────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  initHeroCanvas();
+  startHeroTypewriter();
+  initBiasCards();
+  initMuseum();
+  initScratch();
+  initTagCloud();
+  initDnD();
+  updateNavUI();
+  // Reveal first slide content
+  revealInSlide(slides[0]);
+});
+</script>
+</body>
+</html>
