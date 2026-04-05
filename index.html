@@ -477,17 +477,26 @@ body::after{
   font-family:var(--font-mono);font-size:.62rem;letter-spacing:.15em;
   color:var(--gold-dim);margin:0 .4rem;
 }
-/* "continue" button — appears after last exhibit */
+/* "continue" button — always visible */
 .museum-continue{
-  position:absolute;bottom:2rem;right:clamp(1rem,5vw,4rem);
-  display:none;align-items:center;gap:.6rem;
-  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:var(--gold);
-  animation:pulse-gold 2s ease-in-out infinite;
+  position:absolute;bottom:1.8rem;right:clamp(1rem,5vw,4rem);
+  display:flex;align-items:center;gap:.7rem;
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;
+  color:var(--gold);
   cursor:pointer;
   z-index:20;
+  padding:.6rem 1.2rem;
+  border:1px solid rgba(232,184,109,.3);
+  background:rgba(232,184,109,.05);
+  transition:background .3s,border-color .3s,transform .3s var(--ease);
+  animation:pulse-gold 2.5s ease-in-out infinite;
 }
-.museum-continue.show{display:flex}
-.museum-continue:hover{opacity:.7}
+.museum-continue:hover{
+  background:rgba(232,184,109,.12);
+  border-color:var(--gold);
+  transform:translateX(4px);
+  animation:none;opacity:1;
+}
 
 /* ══════════════════════════════════════════
    SLIDE 4: SCRATCH LAB
@@ -1494,8 +1503,6 @@ function initBiasCards(){
 ────────────────────────────────────── */
 let museumCur=0;
 const MUSEUM_COUNT=4;
-let seenAll=false;
-const seenExhibits=new Set();
 
 function museumGoTo(idx){
   if(idx<0||idx>=MUSEUM_COUNT) return;
@@ -1505,24 +1512,13 @@ function museumGoTo(idx){
   document.querySelectorAll('.museum-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   document.getElementById('museum-prev').disabled=idx===0;
   document.getElementById('museum-next').disabled=idx===MUSEUM_COUNT-1;
-  seenExhibits.add(idx);
-  checkMuseumComplete();
 }
 
 function museumNext(){ museumGoTo(museumCur+1) }
 function museumPrev(){ museumGoTo(museumCur-1) }
 
-function checkMuseumComplete(){
-  if(seenExhibits.size>=MUSEUM_COUNT && !seenAll){
-    seenAll=true;
-    document.getElementById('museum-continue').classList.add('show');
-  }
-}
-
 function revealExhibit(idx){
   document.querySelectorAll('.exhibit')[idx].classList.add('is-revealed');
-  seenExhibits.add(idx);
-  checkMuseumComplete();
 }
 function resetExhibit(idx){
   document.querySelectorAll('.exhibit')[idx].classList.remove('is-revealed');
